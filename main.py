@@ -17,9 +17,8 @@ if __name__ == '__main__':
     """
 
     print("Opening...")
-    file = VMAP.VMAPFile("STLWTest.h5", VMAP.VMAPFile.OPENREADONLY)
-    """file = VMAP.VMAPFile("STLWTest.h5")
-    file.writeMetaInformation(metaInfo)
+    #file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
+    """file.writeMetaInformation(metaInfo)
 
     print("Initializing UnitSystem")
 
@@ -47,12 +46,21 @@ if __name__ == '__main__':
     csystems.push_back(csys)
 
     file.writeCoordinateSystems("/VMAP/SYSTEM", csystems)
-
-    bunny = v.Mesh("test/Stanford_Bunny.stl")
-    writer = VMAPMeshWriter(bunny)
-    writer.writeMeshToFile(file, "VMAP/GEOMETRY/1", "MyMesh")
     """
+    #file = VMAP.VMAPFile("STLWTest.h5")
+    file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
+    bunny = v.Mesh("test/Stanford_Bunny.stl")
+    tower = v.Mesh("test/Eiffel_Tower.stl")
+    gear = v.Mesh("test/Gear.stl")
+    writer = VMAPMeshWriter(file)
+    writer.writeMeshToFile(bunny, "VMAP /GEOMETRY/1", "Stanford Bunny")
+    writer.writeMeshToFile(tower, "VMAP/GEOMETRY/2", "Eiffel Tower")
+    writer.writeMeshToFile(gear, "VMAP/GEOMETRY/3", "Gear... sort of")
+    file.closeFile()
+
+
     print("Reading...")
+    file = VMAP.VMAPFile("STLWTest.h5", VMAP.VMAPFile.OPENREADONLY)
     reader = VMAPMeshReader(file, "VMAP/GEOMETRY/1")
     v.show(reader.getMesh())
     """
