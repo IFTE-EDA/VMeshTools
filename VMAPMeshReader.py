@@ -1,4 +1,3 @@
-import VMAPMeshTools
 import PyVMAP as VMAP
 import vedo as v
 import numpy as np

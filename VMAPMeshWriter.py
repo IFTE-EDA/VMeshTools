@@ -9,11 +9,43 @@ class VMAPMeshWriter:
     pointIDs = {}
 
     def __init__(self, mesh, attrs={}):
-        print("Writer created.")
-        print(mesh.points())
         self.mesh = mesh
         self.attrs = attrs
 
+    """@staticmethod
+    def getEmptyVMAPFile(fName: str):
+        #VMAP.Initialize()
+        file = VMAP.VMAPFile(fName)
+
+        #metaInfo = VMAP.sMetaInformation()
+        #metaInfo.setExporterName("pythoninterface")
+        #metaInfo.setFileDate("20230605")
+        #metaInfo.setFileTime("12:00:00")
+        #metaInfo.setDescription("First test of writing a STL to a file\n")
+        #file.writeMetaInformation(metaInfo)
+
+        unitSystem = VMAP.sUnitSystem()
+        unitSystem.getLengthUnit().setUnitSymbol("m")
+        unitSystem.getMassUnit().setUnitSymbol("kg")
+        unitSystem.getTimeUnit().setUnitSymbol("s")
+        unitSystem.getCurrentUnit().setUnitSymbol("A")
+        unitSystem.getTemperatureUnit().setUnitSymbol("K")
+        unitSystem.getAmountOfSubstanceUnit().setUnitSymbol("mol")
+        unitSystem.getLuminousIntensityUnit().setUnitSymbol("cd")
+        file.writeUnitSystem(unitSystem)
+
+        csystems = VMAP.VectorTemplateCoordinateSystem()
+        csys = VMAP.sCoordinateSystem()
+        csys.myIdentifier = 1
+        csys.myType = VMAP.sCoordinateSystem.CARTESIAN_LEFT_HAND
+        csys.setReferencePoint((0., 0., 0.))
+        csys.setAxisVector(0, (1., 0., 0.))
+        csys.setAxisVector(1, (0., 1., 0.))
+        csys.setAxisVector(2, (0., 0., 1.))
+        csystems.push_back(csys)
+        file.writeCoordinateSystems("/VMAP/SYSTEM", csystems)
+        return file
+    """
     def getPointBlock(self):
         block = VMAP.sPointsBlock(self.mesh.NPoints())
         pts = self.mesh.points()

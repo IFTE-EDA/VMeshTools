@@ -9,12 +9,14 @@ from VMAPMeshReader import VMAPMeshReader
 if __name__ == '__main__':
     print("VMAP Mesh Tester")
     VMAP.Initialize()
-    metaInfo = VMAP.sMetaInformation()
+    """metaInfo = VMAP.sMetaInformation()
     metaInfo.setExporterName("pythoninterface")
     metaInfo.setFileDate("20230605")
     metaInfo.setFileTime("12:00:00")
     metaInfo.setDescription("First test of writing a STL to a file\n")
+    """
 
+    print("Opening...")
     file = VMAP.VMAPFile("STLWTest.h5", VMAP.VMAPFile.OPENREADONLY)
     """file = VMAP.VMAPFile("STLWTest.h5")
     file.writeMetaInformation(metaInfo)
@@ -50,6 +52,7 @@ if __name__ == '__main__':
     writer = VMAPMeshWriter(bunny)
     writer.writeMeshToFile(file, "VMAP/GEOMETRY/1", "MyMesh")
     """
+    print("Reading...")
     reader = VMAPMeshReader(file, "VMAP/GEOMETRY/1")
     v.show(reader.getMesh())
     """
