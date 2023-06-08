@@ -36,13 +36,19 @@ def main():
         sub = geom1.subgroup("POINTS")
         print(sub.exists())
 
-        print("\n\n\n")
-
         geom1 = vh.getMeshes(geom.path)
         print("Meshes: ", vh.getNMeshes(geom.path), geom1)
 
         print(geom1)
         #geom1 = geom.getMesh()
+
+        print("\n\n\n")
+        sub = vh.getSubgroup("/VMAP")
+        print ("IsVMAPRoot:", sub.isVMAPRoot())
+        print("NextVMAPRoot of Geom:", sub.getNextVMAPRoot())
+        print("NextVMAPRoot of wrong dir:", vh.getSubgroup("test/dir/subdir/thereIsNoVMAPHere").getNextVMAPRoot())
+
+
 
         return
         file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")

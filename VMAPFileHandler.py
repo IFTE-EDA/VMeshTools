@@ -1,12 +1,13 @@
 import PyVMAP as VMAP
 import vedo as v
 import os
-
+from VMAPMeshReader import VMAPMeshReader
 
 class VMAPFileHandler:
 
-    def __init__(self, filename: str, mode=VMAP.VMAPFile.OPENREADONLY):
+    def __init__(self, filename: str, mode=VMAP.VMAPFile.OPENREADWRITE):
         self.vmap = VMAP.VMAPFile("STLWTest.h5", mode)
+        #self.vmap.createGroup("/test/dir/subdir/thereIsNoVMAPHere")
 
     def getSubgroup(self, path: str, groupType=None):
         if groupType is None:
@@ -79,19 +80,29 @@ class VMAPGroup:
     def exists(self):
         return self.handler.subgroupExists(self.path)
     def getNSubgroups(self):
-        self.handler.getNSubgroups(self.path)
+        return self.handler.getNSubgroups(self.path)
 
     def getSubgroups(self):
-        self.handler.getSubgroups(self.path)
+        return self.handler.getSubgroups(self.path)
 
     def getSubgroupNames(self):
-        self.handler.getSubgroupsNames(self.path)
+        return self.handler.getSubgroupNames(self.path)
 
     def subgroupExists(self, path):
         return self.handler.subgroupExists(os.path.join(self.path, name))
 
     def parent(self):
         return self.handler.getSubgroup(os.path.dirname(self.path))
+
+    def getNextVMAPRoot(self):
+        print("Parsing next VMAP Root.....")
+        root = self
+        while (not root.isVMAPRoot()):
+            root = root.parent()
+            if not root.path == "":
+                return None
+        print("Found root:", root)
+        return root
 
     def subgroup(self, name):
         return self.handler.getSubgroup(self.path + "/" + name)
@@ -111,13 +122,58 @@ class VMAPGroup:
     def isVariablesSection(self):
         return self.name == "VARIABLES" and self.parent().name == "VMAP"
 
+    def isVMAPRoot(self):
+        if self.name == "VMAP":
+            print(self.getSubgroupNames())
+            children = self.getSubgroupNames()
+            return all(x in children for x in ["GEOMETRY", "MATERIAL", "SYSTEM", "VARIABLES"])
+        return False
 
 class VMAPMeshGroup(VMAPGroup):
 
     def __init__(self, handler, path):
         super().__init__(handler, path)
+
+        self.pointBlock = VMAP.sPointsBlock()
+        self.elementBlock = VMAP.sElementBlock()
+        self.elemTypes = VMAP.VectorTemplateElementType()
+        self.pointsRead = False
+        self.elementsRead = False
+        self.elemTypesRead = False
+
+        #print("Next root: ", self.getNextVMAPRoot())
+
+
+
+        """vmap.readPointsBlock(path, self.pointBlock)
+        vmap.readElementsBlock(path, self.elementBlock)
+        vmap.readElementTypes(self.elemTypes)
+
+        self.points = np.reshape(self.pointBlock.myCoordinates, (-1, 3))
+        self.pointIDs = {self.pointBlock.myIdentifiers[i]: i for i in range(self.pointBlock.mySize)}
+        """
+
     def __repr__(self):
         return "<VMAP geometry group '{}' at {}>".format(self.name, self.path)
 
+    def getPoints(self, update=False):
+        if not self.pointsRead or update:
+            pass
+
+    def getPointIDs(self, update=False):
+        if not self.pointIDsRead or update:
+            pass
+
+    def getElements(self, update=False):
+        if not self.elementsRead or update:
+            pass
+
+    def getElementTypes(self, update=False):
+        if not self.elemTypesRead or update:
+            self.pointIDs = dict.fromkeys((range(self.pointBlock.mySize)))
+
     def renderVedo(self):
+        pass
+
+    def show(self):
         pass
