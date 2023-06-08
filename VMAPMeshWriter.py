@@ -97,8 +97,5 @@ class VMAPMeshWriter:
         print("Writing ElementBlock")
         self.vmap.writeElementsBlock(path, self.getElementsBlock(mesh))
         if not self.elementsWritten:
-            print("<Writing ElementType table>")
             self.vmap.writeElementTypes(self.getElementTypes())
             self.elementsWritten = True
-        else:
-            print("<ElementType table already written>")
