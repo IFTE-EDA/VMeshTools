@@ -92,7 +92,9 @@ class VMAPMeshWriter:
     def writeMeshToFile(self, mesh: v.Mesh, path: str, name: str):
         #if str == "":
         #    file.
+        print("Writing PointBlock")
         self.vmap.writePointsBlock(path, self.getPointBlock(mesh))
+        print("Writing ElementBlock")
         self.vmap.writeElementsBlock(path, self.getElementsBlock(mesh))
         if not self.elementsWritten:
             print("<Writing ElementType table>")

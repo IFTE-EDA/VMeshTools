@@ -85,7 +85,7 @@ class VMAPMeshReader:
                 raise NotImplementedError("Element type not imlemented: {} in element #{}".format(elemType, elem.getIdentifier()))
         mesh = v.Mesh([self.points, faces]).c("red").alpha(1).lw(1) if len(faces) > 0 else v.TetMesh([self.points, tets], mapper='tetra').tomesh(fill=False).c("red").alpha(1)
         pcld = v.Points(self.points, c="blue").ps(3)
-        return mesh, pcld#mesh
+        return mesh#, pcld#mesh
             
         
         
