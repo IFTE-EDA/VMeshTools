@@ -7,6 +7,7 @@ class VMAPMeshReader:
 
     def __init__(self, vmap: VMAP.VMAPFile, path: str):
         self.vmap = vmap
+        print("Geometry group created:", self)
         #points, elements, elemTypes = [], [], []
         self.pointBlock = VMAP.sPointsBlock()
         self.pointIDs = dict.fromkeys((range(self.pointBlock.mySize)))
