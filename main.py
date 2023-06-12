@@ -54,7 +54,10 @@ def main():
             print("Points: ", len(mesh.points))
             print("Faces: ", len(mesh.faces))
             print("Tets: ", len(mesh.tets))
-            mesh.show()
+        mesh1 = geom1[0].renderMesh_vedo()
+        mesh2 = geom1[1].renderMesh_vedo()
+        mesh3 = geom1[2].renderMesh_vedo()
+        v.show(mesh1.x(-100), mesh2, mesh3.x(100))
 
         return
         file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
