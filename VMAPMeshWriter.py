@@ -89,6 +89,15 @@ class VMAPMeshWriter:
         type.setFaceConnectivity ([2, 3, 0, 1, 2, 3, 0, 2, 1])
         return [type]
 
+    def getNextVMAPRoot(self):
+        root = self
+        while (not root.isVMAPRoot()):
+            root = root.parent()
+            if root.path == "":
+                return None
+        #print("Found root:", root)
+        return root
+
     def writeMeshToFile(self, mesh: v.Mesh, path: str, name: str):
         #if str == "":
         #    file.

@@ -151,9 +151,11 @@ class VMAPMeshGroup(VMAPGroup):
 
         #self.handler.pause()
         if self.vmapRootPath == "/":
+            print("Opening without rootpath")
             self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY)
         else:
-            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath)
+            print("Opening with rootpath '{}'".format(self.vmapRootPath+"/VMAP/"))
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath+"/VMAP/")
 
         print("Points: ", len(self.getPoints()))
         print("PointIDs: ", len(self.getPointIDs()))
@@ -274,9 +276,42 @@ class VMAPMeshGroup(VMAPGroup):
         return [self.getPointIndexFromID(conn[i]) for i in ids]
 
     def renderMesh_vedo(self):
+        faces, tets = self.getElements()
         mesh = v.Mesh([self.points, self.faces]).c("red").alpha(1).lw(1) if len(self.faces) > 0 else v.TetMesh([self.points, self.tets], mapper='tetra').tomesh(fill=False).c("red").alpha(1)
-        pcld = v.Points(self.points, c="blue").ps(3)
-        return mesh  # , pcld#mesh
+        return mesh
+
+    def renderPointcloud_vedo(self):
+        #mesh = v.Mesh([self.points, self.faces]).c("red").alpha(1).lw(1) if len(self.faces) > 0 else v.TetMesh([self.points, self.tets], mapper='tetra').tomesh(fill=False).c("red").alpha(1)
+        pcld = v.Points(self.getPoints() , c="blue").ps(3)
+        return pcld
 
     def show(self):
         v.show(self.renderMesh_vedo())
+
+
+
+
+class VMAPMaterialGroup(VMAPGroup):
+
+    def __init__(self, handler, path):
+        super().__init__(handler, path)
+
+        self.color = [128, 128, 128, 0]
+        self.vmapRootPath = self.getNextVMAPRoot().parent().path
+
+        if self.vmapRootPath == "/":
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY)
+        else:
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath)
+
+    def __repr__(self):
+        return "<VMAP material group '{}' at {}>".format(self.name, self.path)
+
+    def setColor(self, col, alpha=0):
+        if alpha == 0 and len(col) == 4:
+            self.color = col[0:2]
+        elif len(col) == 3:
+            self.color = color
+            self.color[3] = alpha
+        else:
+            raise AttributeError("Wrong arguments for VMAPMaterialGroup.setColor: col={}, alpha={}".format(col, alpha))

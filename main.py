@@ -54,34 +54,19 @@ def main():
             print("Points: ", len(mesh.points))
             print("Faces: ", len(mesh.faces))
             print("Tets: ", len(mesh.tets))
-        mesh1 = geom1[0].renderMesh_vedo()
+        mesh1 = geom1[0].renderPointcloud_vedo()
         mesh2 = geom1[1].renderMesh_vedo()
         mesh3 = geom1[2].renderMesh_vedo()
-        v.show(mesh1.x(-100), mesh2, mesh3.x(100))
-
-        return
-        file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
-        bunny = v.Mesh("test/Stanford_Bunny.stl")
-        tower = v.Mesh("test/Eiffel_Tower.stl")
-        gear = v.Mesh("test/Gear.stl")
-        writer = VMAPMeshWriter(file)
-        writer.writeMeshToFile(bunny, "VMAP/GEOMETRY/1", "Stanford Bunny")
-        writer.writeMeshToFile(tower, "VMAP/GEOMETRY/2", "Eiffel Tower")
-        writer.writeMeshToFile(gear, "VMAP/GEOMETRY/3", "Gear... sort of")
-        file.closeFile()
+        #print(vh.getProcessStepNames())
+        print("getting mesh4...")
+        mesh4 = vh.getMeshes("/1_Firststep/VMAP/GEOMETRY")[0].renderMesh_vedo()
+        print("getting mesh5...")
+        mesh5 = vh.getMeshes("/2_Secondstep/VMAP/GEOMETRY")[0].renderMesh_vedo()
+        print("getting mesh6...")
+        mesh6 = vh.getMeshes("/3_Thirdstep/VMAP/GEOMETRY")[0].renderMesh_vedo()
+        v.show(mesh1.x(-100), mesh2, mesh3.x(100), mesh4.y(-200).x(-100), mesh5.y(-200), mesh6.y(-200).x(100))
 
 
-        print("Reading...")
-        file = VMAP.VMAPFile("STLWTest.h5", VMAP.VMAPFile.OPENREADONLY)
-
-        bunnyReader = VMAPMeshReader(file, "VMAP/GEOMETRY/1")
-        towerReader = VMAPMeshReader(file, "VMAP/GEOMETRY/2")
-        gearReader = VMAPMeshReader(file, "VMAP/GEOMETRY/3")
-        readBunny = bunnyReader.getMesh()
-        readTower = towerReader.getMesh().x(-100)
-        readGear = gearReader.getMesh().x(100)
-
-        v.show(readBunny, readTower, readGear)
 
 #print(timeit.timeit("main()", number=1))
 #print(timeit.Timer(main).timeit(number=1))
