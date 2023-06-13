@@ -151,6 +151,9 @@ class VMAPMeshGroup(VMAPGroup):
     def __init__(self, handler, path):
         super().__init__(handler, path)
 
+        if not self.exists():
+            self.handler.vmap.createGroup(path)
+
         if not self.isMeshGroup():
             raise Exception("{} is no mesh group!".format(self))
 
@@ -165,11 +168,11 @@ class VMAPMeshGroup(VMAPGroup):
         #self.handler.pause()
         if self.vmapRootPath == "/":
             #print("Opening without rootpath")
-            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY)
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADWRITE)
         else:
             self.vmapRootPath = self.vmapRootPath + "/VMAP/"
             #print("Opening with rootpath '{}'".format(self.vmapRootPath))
-            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath)
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADWRITE, self.vmapRootPath)
 
         #self.getPoints()
         #self.getPointIDs()
@@ -178,6 +181,10 @@ class VMAPMeshGroup(VMAPGroup):
         #self.getPoints()
         #self.getPointIDs()
         #self.getElementTypes()
+        #if not self.exists():
+        #    self.handler.createGroup(path)
+        #else:
+        #    self.getElements()
         self.getElements()
 
         #self.handler.resume()
@@ -307,6 +314,82 @@ class VMAPMeshGroup(VMAPGroup):
 
     def getPointsFromConn(self, conn, ids):
         return [self.getPointIndexFromID(conn[i]) for i in ids]
+
+
+
+
+    def __makePointBlock(self, mesh):
+        block = VMAP.sPointsBlock(mesh.NPoints())
+        pts = mesh.points()
+        for i in range(mesh.NPoints()):
+            #print("{}: {}/{}/{}; {}".format(i+1, pts[i][0], pts[i][1], pts[i][2], type(pts[i][0])))
+            block.setPoint(i, i+1, float(pts[i][0]), float(pts[i][1]), float(pts[i][2]))
+        return block
+
+    def __makeElementsBlock(self, mesh):
+        block = VMAP.sElementBlock(mesh.NCells())
+        faces = mesh.faces()
+        for i, face in enumerate(faces):
+            #print("Face: {}".format(face))
+            conn = [int(i+1) for i in face]
+            elem = VMAP.sElement(3)
+            elem.myIdentifier = i+1
+            elem.myElementType = 1
+            elem.myCoordinateSystem = 1         # TODO
+            elem.myMaterialType = 1             # TODO
+            #print("Conn: {}".format(conn))
+            elem.setConnectivity(conn)
+
+            block.setElement(i, elem)
+
+        return block
+
+    def __elemTypeDefined(self):
+        type = self.getElementTypeFromId(1)
+        conn = type.getConnectivity()
+        print("Checking type", type, conn)
+        print("type.myShapeType", type.myShapeType, VMAP.sElementType.TRIANGLE_3)
+        print("conn", conn, (0, 1, 2))
+        if type.myShapeType == VMAP.sElementType.TRIANGLE_3 and conn == (0, 1, 2):
+            print("Existing.")
+            return True
+        else:
+            print("Not existing.")
+            return False
+
+    def __makeElementTypes(self):
+        type = VMAP.sElementType()
+        type.myIdentifier = 1
+        type.myTypeName = "TRIANGLE_3"
+        type.myTypeDescription = "TRIANGLE_3"
+        type.myNumberOfNodes = 3
+        type.myDimension = 2
+        type.myShapeType = VMAP.sElementType.TRIANGLE_3
+        #type.myInterpolationType
+        #type.myIntegrationType
+        #type.myNumberOfNormalComponents
+        #type.myNumberOfShearComponents
+        type.setConnectivity([0, 1, 2])
+        #faceConn = [2, 3, 0, 1, 2, 3, 0, 2, 1]
+        type.setFaceConnectivity ([2, 3, 0, 1, 2, 3, 0, 2, 1])
+        return [type]
+
+    def writeMesh_vedo(self, mesh):
+        print("Writing PointBlock")
+        pb = self.__makePointBlock(mesh)
+        print(pb, pb.mySize)
+        #self.handler.vmap.writePointsBlock(self.path, pb)
+        self.vmapRoot.writePointsBlock(self.path, pb)
+        print("Writing ElementBlock")
+        #self.handler.vmap.writeElementsBlock(self.path, self.__makeElementsBlock(mesh))
+        self.vmapRoot.writeElementsBlock(self.path, self.__makeElementsBlock(mesh))
+        if not self.__elemTypeDefined():
+            self.vmapRoot.writeElementTypes(self.__makeElementTypes())
+        self.elementsWritten = True
+
+
+
+
 
     def renderMesh_vedo(self):
         faces, tets = self.getElements()

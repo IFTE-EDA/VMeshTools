@@ -56,7 +56,12 @@ def main():
             print("Tets: ", len(mesh.tets))
         mesh1 = geom1[0].renderPointcloud_vedo()
         mesh2 = geom1[1].renderMesh_vedo()
+        boat = v.Mesh("test/ben_floating_benchmark.stl")
+        VMAPMeshGroup(vh, "/VMAP/GEOMETRY/5").writeMesh_vedo(boat)
+        #geom1[2].getElements(True)
         mesh3 = geom1[2].renderMesh_vedo()
+        mesh3 = VMAPMeshGroup(vh, "/VMAP/GEOMETRY/5").renderMesh_vedo()
+
         #print(vh.getProcessStepNames())
         mesh4 = vh.getMeshes("/1_Firststep/VMAP/GEOMETRY")[0].renderMesh_vedo()
         mesh5 = vh.getMeshes("/2_Secondstep/VMAP/GEOMETRY")[0].renderMesh_vedo()
