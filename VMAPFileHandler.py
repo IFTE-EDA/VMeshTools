@@ -115,8 +115,11 @@ class VMAPGroup:
     def subgroup(self, name):
         return self.handler.getSubgroup(self.path + "/" + name)
 
-    def isMeshGroup(self):
-        return self.parent().name == "GEOMETRY" and self.parent().parent().name == "VMAP"
+    def isVMAPRoot(self):
+        if self.name == "VMAP":
+            children = self.getSubgroupNames()
+            return all(x in children for x in ["GEOMETRY", "MATERIAL", "SYSTEM", "VARIABLES"])
+        return False
 
     def isGeometrySection(self):
         return self.name == "GEOMETRY" and self.parent().name == "VMAP"
@@ -130,16 +133,26 @@ class VMAPGroup:
     def isVariablesSection(self):
         return self.name == "VARIABLES" and self.parent().name == "VMAP"
 
-    def isVMAPRoot(self):
-        if self.name == "VMAP":
-            children = self.getSubgroupNames()
-            return all(x in children for x in ["GEOMETRY", "MATERIAL", "SYSTEM", "VARIABLES"])
-        return False
+    def isMeshGroup(self):
+        return self.parent().isGeometrySection()  # name == "GEOMETRY" and self.parent().parent().name == "VMAP"
+
+    def isMaterialGroup(self):
+        return self.parent().isMaterialSection()
+
+    def isSystemGroup(self):
+        return self.parent().isSystemSection()
+
+    def isVariablesGroup(self):
+        return self.parent().isVariablesSection()
+
 
 class VMAPMeshGroup(VMAPGroup):
 
     def __init__(self, handler, path):
         super().__init__(handler, path)
+
+        if not self.isMeshGroup():
+            raise Exception("{} is no mesh group!".format(self))
 
         self.pointsRead = False
         self.pointIDsRead = False
@@ -151,17 +164,21 @@ class VMAPMeshGroup(VMAPGroup):
 
         #self.handler.pause()
         if self.vmapRootPath == "/":
-            print("Opening without rootpath")
+            #print("Opening without rootpath")
             self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY)
         else:
-            print("Opening with rootpath '{}'".format(self.vmapRootPath+"/VMAP/"))
-            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath+"/VMAP/")
+            self.vmapRootPath = self.vmapRootPath + "/VMAP/"
+            #print("Opening with rootpath '{}'".format(self.vmapRootPath))
+            self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath)
 
-        print("Points: ", len(self.getPoints()))
-        print("PointIDs: ", len(self.getPointIDs()))
-        print("ElemTypes: ", len([i for i in self.getElementTypes()]))
-        print("Elements: ", len(self.getElements()))
-        print("\n")
+        #self.getPoints()
+        #self.getPointIDs()
+        #self.getElementTypes()
+        #self.getElements()
+        #self.getPoints()
+        #self.getPointIDs()
+        #self.getElementTypes()
+        self.getElements()
 
         #self.handler.resume()
 
@@ -195,7 +212,7 @@ class VMAPMeshGroup(VMAPGroup):
 
     def getElementBlock(self, update=False):
         if not self.elementsRead or update:
-            self.elementBlock = VMAP.sElementBlock()    #TODO gt length
+            self.elementBlock = VMAP.sElementBlock()
             self.vmapRoot.readElementsBlock(self.path, self.elementBlock)
             self.elementsRead = True
             self.elementsParsed = False
@@ -214,6 +231,10 @@ class VMAPMeshGroup(VMAPGroup):
         if not self.elementsParsed or update:
             if not self.elementsRead:
                 self.getElementBlock(update)
+            if not self.elemTypesRead:
+                self.getElementTypes(update)
+            if not self.pointsRead:
+                self.getPoints(update)
             faces = []
             tets = []
             for i in range(self.elementBlock.myElementsSize):
@@ -266,6 +287,8 @@ class VMAPMeshGroup(VMAPGroup):
             raise Exception("Element type identifier not found: {}".format(id))
 
     def getPointIndexFromID(self, id):  #TODO: test for easier adressing via i=id-1; recorrect first to ict-like lookup
+        if not self.pointIDsRead:
+            self.getPointIDs()
         return self.pointIDs[id]
         #return id-1
 
@@ -296,22 +319,67 @@ class VMAPMaterialGroup(VMAPGroup):
     def __init__(self, handler, path):
         super().__init__(handler, path)
 
-        self.color = [128, 128, 128, 0]
+        if self.exists():       #group exists, load data
+            if not self.isMaterialGroup():
+                raise Exception("{} is no material group!".format(self))
+            self.matId = int(self.name)
+            self.mat = VMAP.sMaterial()
+            #self.matCard = VMAP.sMaterialCard()
+            self.handler.vmap.readMaterial(self.path, self.mat)
+            self.matCardRaw = self.mat.getMaterialCard()
+            self.matName = self.mat.getMaterialName()
+            self.matDesc = self.mat.getMaterialDescription()
+            self.matState = self.mat.getMaterialState()
+            self.matSupplier = self.mat.getMaterialSupplier()
+            self.matType = self.mat.getMaterialType()
+
+            self.matCard = dict()
+            self.matCard["modelName"] = self.matCardRaw.getModelName()
+            self.matCard["identifier"] = self.matCardRaw.getIdentifier()
+            self.matCard["physics"] = self.matCardRaw.getPhysics()
+            self.matCard["solver"] = self.matCardRaw.getSolver()
+            self.matCard["solverVersion"] = self.matCardRaw.getSolverVersion()
+            self.matCard["solution"] = self.matCardRaw.getSolution()
+            self.matCard["unitSystem"] = self.matCardRaw.getUnitSystem()
+            self.matCard["idealization"] = self.matCardRaw.getIdealization()
+
+            self.paramRaw = self.matCardRaw.getParameters()
+            self.param = {p.getName(): p.getValue() for p in self.paramRaw}
+            self.paramDesc = {p.getName(): p.getDescription() for p in self.paramRaw}
+
+
+
+
+            self.setColor(self.param["DisplayColor"])
+        else:                   #load default values
+            self.color = [128, 128, 128, 0]
+
+
         self.vmapRootPath = self.getNextVMAPRoot().parent().path
 
-        if self.vmapRootPath == "/":
+        """if self.vmapRootPath == "/":
             self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY)
         else:
             self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADONLY, self.vmapRootPath)
+        """
 
     def __repr__(self):
         return "<VMAP material group '{}' at {}>".format(self.name, self.path)
 
-    def setColor(self, col, alpha=0):
-        if alpha == 0 and len(col) == 4:
-            self.color = col[0:2]
-        elif len(col) == 3:
-            self.color = color
-            self.color[3] = alpha
+    def setColor(self, col, alpha=255):
+        if type(col) is str:    #hexcode
+            if len(col) == 6:
+                self.color = tuple(int(col[i:i+2], 16) for i in (0, 2, 4))
+                self.alpha = alpha
+            elif len(col) == 8:
+                self.color = tuple(int(col[i:i + 2], 16) for i in (0, 2, 4, 6))
+            else:
+                raise AttributeError("Unrecognized color string:", col)
         else:
-            raise AttributeError("Wrong arguments for VMAPMaterialGroup.setColor: col={}, alpha={}".format(col, alpha))
+            if alpha == 0 and len(col) == 4:
+                self.color = col[0:2]
+            elif len(col) == 3:
+                self.color = color
+                self.color[3] = alpha
+            else:
+                raise AttributeError("Wrong arguments for VMAPMaterialGroup.setColor: col={}, alpha={}".format(col, alpha))

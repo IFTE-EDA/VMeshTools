@@ -58,12 +58,13 @@ def main():
         mesh2 = geom1[1].renderMesh_vedo()
         mesh3 = geom1[2].renderMesh_vedo()
         #print(vh.getProcessStepNames())
-        print("getting mesh4...")
         mesh4 = vh.getMeshes("/1_Firststep/VMAP/GEOMETRY")[0].renderMesh_vedo()
-        print("getting mesh5...")
         mesh5 = vh.getMeshes("/2_Secondstep/VMAP/GEOMETRY")[0].renderMesh_vedo()
-        print("getting mesh6...")
         mesh6 = vh.getMeshes("/3_Thirdstep/VMAP/GEOMETRY")[0].renderMesh_vedo()
+        print("Loading PLA mat...")
+        mPLA = VMAPMaterialGroup(vh, "1_Firststep/VMAP/MATERIAL/1")
+        print("Loading Cu mat...")
+        mCu = VMAPMaterialGroup(vh, "3_Thirdstep/VMAP/MATERIAL/1")
         v.show(mesh1.x(-100), mesh2, mesh3.x(100), mesh4.y(-200).x(-100), mesh5.y(-200), mesh6.y(-200).x(100))
 
 
