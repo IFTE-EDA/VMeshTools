@@ -192,6 +192,8 @@ class VMAPMeshGroup(VMAPGroup):
             self.vmapRoot.readPointsBlock(self.path, self.pointBlock)
             self.pointsRead = True
             self.pointsParsed = False
+            self.elementsRead = False
+            self.elementsParsed = False
         return self.pointBlock
 
     def getPoints(self, update=False):
@@ -199,6 +201,8 @@ class VMAPMeshGroup(VMAPGroup):
             self.getPointBlock(update)
             self.points = np.reshape(self.pointBlock.myCoordinates, (-1, 3))
             self.pointsParsed = True
+            self.elementsRead = False
+            self.elementsParsed = False
         return self.points
 
     def getPointIDs(self, update=False):
@@ -208,6 +212,8 @@ class VMAPMeshGroup(VMAPGroup):
             self.pointIDs = dict.fromkeys((range(self.pointBlock.mySize)))
             self.pointIDs = {self.pointBlock.myIdentifiers[i]: i for i in range(self.pointBlock.mySize)}
             self.pointIDsRead = True
+            self.elementsRead = False
+            self.elementsParsed = False
         return self.pointIDs
 
     def getElementBlock(self, update=False):
@@ -224,6 +230,8 @@ class VMAPMeshGroup(VMAPGroup):
             #self.handler.vmap.readElementTypes(self.elemTypes)
             self.vmapRoot.readElementTypes(self.elemTypes)
             self.elemTypesRead = True
+            self.elementsRead = False
+            self.elementsParsed = False
             #print("Found {} element types in {}".format(self.elemTypes.size(), self.vmapRootPath))
         return self.elemTypes
 
@@ -275,6 +283,8 @@ class VMAPMeshGroup(VMAPGroup):
         return (self.faces, self.tets)
 
     def getElementTypeFromId(self, id: int):
+        if not self.elemTypesRead:
+            self.getElementTypes()
         type = self.elemTypes[id-1]
         if type.getIdentifier() != id:          #not numbered as ID(i)=i+1... =(
             print("ID {} not found. Searching...".format(id))
