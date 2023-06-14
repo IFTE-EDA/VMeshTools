@@ -2,7 +2,7 @@ import PyVMAP as VMAP
 import vedo as v
 import os
 import numpy as np
-from VMAPMeshReader import VMAPMeshReader
+from .VMAPMeshReader import VMAPMeshReader
 
 class VMAPFileHandler:
 
@@ -174,22 +174,11 @@ class VMAPMeshGroup(VMAPGroup):
             #print("Opening with rootpath '{}'".format(self.vmapRootPath))
             self.vmapRoot = VMAP.VMAPFile(self.handler.filename, VMAP.VMAPFile.OPENREADWRITE, self.vmapRootPath)
 
-        #self.getPoints()
-        #self.getPointIDs()
-        #self.getElementTypes()
-        #self.getElements()
-        #self.getPoints()
-        #self.getPointIDs()
-        #self.getElementTypes()
-        #if not self.exists():
-        #    self.handler.createGroup(path)
-        #else:
-        #    self.getElements()
         try:
             self.name = self.vmapRoot.getStringAttribute(path, "MYNAME")
         except RuntimeError:
             self.name = self.id
-            print("No 'MYNAME' Attribute found in", self)
+            print("No 'MYNAME' Attribute found in", self.path)
         self.getElements()
 
         #self.handler.resume()
