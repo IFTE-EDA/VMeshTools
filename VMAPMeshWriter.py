@@ -105,6 +105,7 @@ class VMAPMeshWriter:
         self.vmap.writePointsBlock(path, self.getPointBlock(mesh))
         print("Writing ElementBlock")
         self.vmap.writeElementsBlock(path, self.getElementsBlock(mesh))
+        self.vmap.createStringAttribute(path, "MYNAME", name)
         if not self.elementsWritten:
             self.vmap.writeElementTypes(self.getElementTypes())
             self.elementsWritten = True

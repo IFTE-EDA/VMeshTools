@@ -80,10 +80,10 @@ class VMAPGroup:
     def __init__(self, handler, path):
         self.handler = handler
         self.path = path
-        self.name = path.split("/")[-1]
+        self.id = path.split("/")[-1]
 
     def __repr__(self):
-        return "<VMAP subgroup '{}' at {}>".format(self.name, self.path)
+        return "<VMAP subgroup '{}' at {}>".format(self.id, self.path)
 
     def exists(self):
         return self.handler.subgroupExists(self.path)
@@ -116,25 +116,25 @@ class VMAPGroup:
         return self.handler.getSubgroup(self.path + "/" + name)
 
     def isVMAPRoot(self):
-        if self.name == "VMAP":
+        if self.id == "VMAP":
             children = self.getSubgroupNames()
             return all(x in children for x in ["GEOMETRY", "MATERIAL", "SYSTEM", "VARIABLES"])
         return False
 
     def isGeometrySection(self):
-        return self.name == "GEOMETRY" and self.parent().name == "VMAP"
+        return self.id == "GEOMETRY" and self.parent().id == "VMAP"
 
     def isMaterialSection(self):
-        return self.name == "MATERIAL" and self.parent().name == "VMAP"
+        return self.id == "MATERIAL" and self.parent().id == "VMAP"
 
     def isSystemSection(self):
-        return self.name == "SYSTEM" and self.parent().name == "VMAP"
+        return self.id == "SYSTEM" and self.parent().id == "VMAP"
 
     def isVariablesSection(self):
-        return self.name == "VARIABLES" and self.parent().name == "VMAP"
+        return self.id == "VARIABLES" and self.parent().id == "VMAP"
 
     def isMeshGroup(self):
-        return self.parent().isGeometrySection()  # name == "GEOMETRY" and self.parent().parent().name == "VMAP"
+        return self.parent().isGeometrySection()  # name == "GEOMETRY" and self.parent().parent().id == "VMAP"
 
     def isMaterialGroup(self):
         return self.parent().isMaterialSection()
@@ -185,13 +185,18 @@ class VMAPMeshGroup(VMAPGroup):
         #    self.handler.createGroup(path)
         #else:
         #    self.getElements()
+        try:
+            self.name = self.vmapRoot.getStringAttribute(path, "MYNAME")
+        except RuntimeError:
+            self.name = self.id
+            print("No 'MYNAME' Attribute found in", self)
         self.getElements()
 
         #self.handler.resume()
 
 
     def __repr__(self):
-        return "<VMAP geometry group '{}' at {}>".format(self.name, self.path)
+        return "<VMAP geometry group '{}' with name '{}' at {}>".format(self.id, self.name, self.path)
 
     def getPointBlock(self, update=False):
         if not self.pointsRead or update:
@@ -347,14 +352,9 @@ class VMAPMeshGroup(VMAPGroup):
     def __elemTypeDefined(self):
         type = self.getElementTypeFromId(1)
         conn = type.getConnectivity()
-        print("Checking type", type, conn)
-        print("type.myShapeType", type.myShapeType, VMAP.sElementType.TRIANGLE_3)
-        print("conn", conn, (0, 1, 2))
         if type.myShapeType == VMAP.sElementType.TRIANGLE_3 and conn == (0, 1, 2):
-            print("Existing.")
             return True
         else:
-            print("Not existing.")
             return False
 
     def __makeElementTypes(self):
@@ -374,15 +374,14 @@ class VMAPMeshGroup(VMAPGroup):
         type.setFaceConnectivity ([2, 3, 0, 1, 2, 3, 0, 2, 1])
         return [type]
 
-    def writeMesh_vedo(self, mesh):
+    def writeMesh_vedo(self, mesh: str, name=""):
         print("Writing PointBlock")
-        pb = self.__makePointBlock(mesh)
-        print(pb, pb.mySize)
         #self.handler.vmap.writePointsBlock(self.path, pb)
-        self.vmapRoot.writePointsBlock(self.path, pb)
-        print("Writing ElementBlock")
+        self.vmapRoot.writePointsBlock(self.path, self.__makePointBlock(mesh))
         #self.handler.vmap.writeElementsBlock(self.path, self.__makeElementsBlock(mesh))
         self.vmapRoot.writeElementsBlock(self.path, self.__makeElementsBlock(mesh))
+        if not name == "":
+            self.vmapRoot.createStringAttribute(self.path, "MYNAME", name)
         if not self.__elemTypeDefined():
             self.vmapRoot.writeElementTypes(self.__makeElementTypes())
         self.elementsWritten = True
@@ -415,7 +414,7 @@ class VMAPMaterialGroup(VMAPGroup):
         if self.exists():       #group exists, load data
             if not self.isMaterialGroup():
                 raise Exception("{} is no material group!".format(self))
-            self.matId = int(self.name)
+            self.matId = int(self.id)
             self.mat = VMAP.sMaterial()
             #self.matCard = VMAP.sMaterialCard()
             self.handler.vmap.readMaterial(self.path, self.mat)
@@ -457,7 +456,7 @@ class VMAPMaterialGroup(VMAPGroup):
         """
 
     def __repr__(self):
-        return "<VMAP material group '{}' at {}>".format(self.name, self.path)
+        return "<VMAP material group '{}' at {}>".format(self.id, self.path)
 
     def setColor(self, col, alpha=255):
         if type(col) is str:    #hexcode
