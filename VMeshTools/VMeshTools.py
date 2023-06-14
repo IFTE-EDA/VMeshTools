@@ -69,11 +69,29 @@ class VMAPFileHandler:
         pass
 
 
-    def getFile(self, path: str):
-        pass
+    def getFile(self, path: str, newName=""):
+        arr = path.strip("/").split("/")
+        group = "/" + "/".join(arr[:-1])
+        dataset = arr[-1]
+        # print ("{} - {}".format(group, dataset))
+        if newName == "":
+            file = self.vmap.getStringAttribute(path, "FILENAME")
+            print("Saving File in {} to {}".format(group + "/" + dataset, file))
+            ret = self.vmap.restoreExternalFile(group, dataset, file)
+            print(newName, ret)
+        else:
+            print("Saving File in {} to {}".format(group+"/"+dataset, newName))
+            ret = self.vmap.restoreExternalFile(group, dataset, newName)
+            print(newName, ret)
 
-    def storeFile(self, path: str, file, description: str):
-        pass
+    def storeFile(self, path: str, file: str, desc: str):
+        arr = path.strip("/").split("/")
+        group = "/" + "/".join(arr[:-1])
+        dataset = arr[-1]
+        #print ("{} - {}".format(group, dataset))
+        self.vmap.saveExternalFile(group, dataset, file)
+        #self.vmap.createStringAttribute(group, dataset, file)
+
 
 
 class VMAPGroup:

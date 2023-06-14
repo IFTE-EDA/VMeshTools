@@ -71,6 +71,9 @@ def main():
         mPLA = vmt.VMAPMaterialGroup(vh, "1_Firststep/VMAP/MATERIAL/1")
         print("Loading Cu mat...")
         mCu = vmt.VMAPMaterialGroup(vh, "3_Thirdstep/VMAP/MATERIAL/1")
+        #vh.vmap.createGroup("/FILES")
+        vh.storeFile("/VMAP/FILES/testStl", "test/Gear.stl", "My test description")
+        vh.getFile("/VMAP/FILES/testStl", "export.stl")
         v.show(mesh1.x(-100), mesh2, mesh3.x(100), mesh4.y(-200).x(-100), mesh5.y(-200), mesh6.y(-200).x(100))
 
 
