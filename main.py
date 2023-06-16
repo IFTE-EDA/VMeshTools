@@ -17,7 +17,9 @@ def main():
         #file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
         #file = VMAP.VMAPFile("STLWTest.h5")
 
-        vh = vmt.VMAPFileHandler("STLWTest.h5")
+        vh = vmt.VMAPFileHandler("test/test.h5")
+        print(vh.getProcessSteps())
+        return False
         print(vh.getNProcessSteps())
         print(vh.getProcessStepPaths())
         print(vh.getProcessStepNames())
@@ -73,7 +75,7 @@ def main():
         mCu = vmt.VMAPMaterialGroup(vh, "3_Thirdstep/VMAP/MATERIAL/1")
         #vh.vmap.createGroup("/FILES")
         vh.storeFile("/VMAP/FILES/testStl", "test/Gear.stl", "My test description")
-        vh.getFile("/VMAP/FILES/testStl", "export.stl")
+        #vh.getFile("/VMAP/FILES/testStl", "export.stl")
         v.show(mesh1.x(-100), mesh2, mesh3.x(100), mesh4.y(-200).x(-100), mesh5.y(-200), mesh6.y(-200).x(100))
 
 

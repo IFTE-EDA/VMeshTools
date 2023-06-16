@@ -1,0 +1,131 @@
+import h5py
+import PyVMAP as VMAP
+import vedo as v
+import numpy as np
+from VMeshTools import VMAPMeshWriter
+from VMeshTools import VMAPMeshReader
+
+"""
+f = h5py.File("STLWTest.h5", 'r+')
+print(f.keys())
+#del f["VMAPGEOMETRY"]
+#del f["VMAPMATERIAL"]
+#del f["VMAPSYSTEM"]
+#del f["VMAPVARIABLES"]
+#vmap1 = f.create_group("1_Firststep/VMAP")
+#vmap2 = f.create_group("2_Secondstep/VMAP")
+#vmap3 = f.create_group("3_Thirdstep/VMAP")
+#print(f.keys())
+f.close()
+"""
+#file = VMAPMeshWriter.getEmptyVMAPFile("STLWTest.h5")
+file = VMAPMeshWriter.getEmptyVMAPFile("test/test.h5")
+bunny = v.Mesh("test/Stanford_Bunny.stl")
+tower = v.Mesh("test/Eiffel_Tower.stl")
+gear = v.Mesh("test/Gear.stl")
+writer = VMAPMeshWriter(file)
+writer.writeMeshToFile(bunny, "VMAP/GEOMETRY/1", "Stanford Bunny")
+writer.writeMeshToFile(tower, "VMAP/GEOMETRY/2", "Eiffel Tower")
+writer.writeMeshToFile(gear, "VMAP/GEOMETRY/3", "Gear... sort of")
+
+file.createGroup("/1_Firststep/")
+file.createGroup("/2_Secondstep/")
+file.createGroup("/3_Thirdstep/")
+file.closeFile()
+
+"""
+print("Writing Version...")
+f = h5py.File("STLWTest.h5", 'r+')
+print(f.keys())
+vmap1 = f.create_group("1_Firststep/VMAP")
+vmap2 = f.create_group("2_Secondstep/VMAP")
+vmap3 = f.create_group("3_Thirdstep/VMAP")
+print(f.keys())
+dt_ver = np.dtype({"names": ["myMajor", "myMinor", "myPatch"],"formats": ['<i4', '<i4', '<i4']})                
+arr_ver = np.array([('1','0','0',)], dt_ver)
+vmap1.attrs.create("VERSION", arr_ver)
+#vmap2.attrs.create("VERSION", arr_ver)
+#vmap3.attrs.create("VERSION", arr_ver)
+f.close()
+"""
+
+mPLA = VMAP.sMaterial()
+mPLA.setMaterialName("Polylactic Acid")
+mPLA.setMaterialDescription("PLA printed by a 3D printer")
+mPLA.setMaterialState("solid")
+mPLA.setMaterialSupplier("Our 3D printer, hehe")
+mPLA.setMaterialType("Thermoplast")
+mcPLA = VMAP.sMaterialCard()
+mcPLA.setModelName("PLA-Model")
+mcPLA.setIdealization("shell")
+mcPLA.setIdentifier("PLAMOD")
+mcPLA.setPhysics("solid mechanics")
+mcPLADispCol = VMAP.sParameter()
+mcPLADispCol.setName("DisplayColor")
+mcPLADispCol.setValue("4466FF")
+mcPLADispCol.setDescription("The color the material is displayed in")
+mcPLAInfill = VMAP.sParameter()
+mcPLAInfill.setName("Infill")
+mcPLAInfill.setValue("30%")
+mcPLAInfill.setDescription("The amount of space occupied by Material")
+mcPLALayerH = VMAP.sParameter()
+mcPLALayerH.setName("LayerHeight")
+mcPLALayerH.setValue("100 µm")
+mcPLALayerH.setDescription("The thickness of a single extruded layer")
+mcPLA.setParameters([mcPLADispCol, mcPLAInfill, mcPLALayerH])
+mPLA.setMaterialCard(mcPLA)
+
+mCu = VMAP.sMaterial()
+mCu.setMaterialName("Copper")
+mCu.setMaterialDescription("Copper >99.5%")
+mCu.setMaterialState("solid")
+mCu.setMaterialSupplier("https://www.multi-circuit-boards.eu/leiterplatten-design-hilfe/lagenaufbau/prepregs-kerne-folien.html?gad=1&gclid=CjwKCAjwp6CkBhB_EiwAlQVyxa1xsk5KMU7V4J1tWZ82u_NNhoFNQcBUejiStzgzZl3W4CHo5z74bxoCHmMQAvD_BwE")
+mCu.setMaterialType("Metal")
+mcCu = VMAP.sMaterialCard()
+mcCu.setModelName("Cu-Model")
+mcCu.setIdealization("solid")
+mcCu.setIdentifier("CUMOD")
+mcCu.setPhysics("solid mechanics")
+mcCuDispCol = VMAP.sParameter()
+mcCuDispCol.setName("DisplayColor")
+mcCuDispCol.setValue("EE8844")
+mcCuDispCol.setDescription("The color the material is displayed in")
+mcCuPurity = VMAP.sParameter()
+mcCuPurity.setName("Purity")
+mcCuPurity.setValue("99.5")
+mcCuPurity.setDescription("The minimum material purity")
+mcCuDensity = VMAP.sParameter()
+mcCuDensity.setName("Density")
+mcCuDensity.setValue("8,96")
+mcCuDensity.setDescription("Density in g/cm3")
+mcCu.setParameters([mcCuDispCol, mcCuPurity, mcCuDensity])
+mCu.setMaterialCard(mcCu)
+
+
+
+print("Opening boat...")
+boatVmap = VMAP.VMAPFile("test/test.h5", VMAP.VMAPFile.OPENREADWRITE, "/1_Firststep/VMAP/")
+#boatVmap.createGroup("/1_Firststep/VMAP")
+boatWriter = VMAPMeshWriter(boatVmap)
+boat = v.Mesh("test/ben_floating_benchmark.stl")
+boatWriter.writeMeshToFile(boat, "1_Firststep/VMAP/GEOMETRY/1", "Ben Floating Benchmark")
+boatVmap.writeMaterial("1_Firststep/VMAP/MATERIAL/1", mPLA)
+boatVmap.closeFile()
+
+print("Boat written.")
+
+benchVmap = VMAP.VMAPFile("test/test.h5", VMAP.VMAPFile.OPENREADWRITE, "/2_Secondstep/VMAP/")
+print("Ben opened.")
+#benchVmap.createGroup("/2_Secondstep/VMAP")
+benchWriter = VMAPMeshWriter(benchVmap)
+bench = v.Mesh("test/3D_Printer_test_stl.stl")
+benchWriter.writeMeshToFile(bench, "2_Secondstep/VMAP/GEOMETRY/1", "3D printer benchmark")
+benchVmap.closeFile()
+
+traceVmap = VMAP.VMAPFile("test/test.h5", VMAP.VMAPFile.OPENREADWRITE, "/3_Thirdstep/VMAP/")
+#traceVmap.createGroup("/3_Thirdstep/VMAP")
+traceWriter = VMAPMeshWriter(traceVmap)
+trace = v.Mesh("test/Striptest-v-trace.stl")
+traceWriter.writeMeshToFile(trace, "3_Thirdstep/VMAP/GEOMETRY/1", "Bent trace")
+traceVmap.writeMaterial("3_Thirdstep/VMAP/MATERIAL/1", mCu)
+traceVmap.closeFile()

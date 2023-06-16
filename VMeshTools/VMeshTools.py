@@ -23,49 +23,56 @@ class VMAPFileHandler:
         else:
             return groupType(self, path)
 
-    def getNSubgroups(self, path: str):
+    def getNSubgroups(self, path: str="/"):
         return len(self.vmap.getSubGroups(path))
 
-    def getSubgroups(self, path: str, groupType=None):
+    def getSubgroups(self, path: str="/", groupType=None):
         return [self.getSubgroup(path, groupType) for path in self.getSubgroupPaths(path)]
 
-    def getSubgroupNames(self, path: str):
+    def getSubgroupNames(self, path: str="/"):
         return self.vmap.getSubGroups(path)
 
-    def getSubgroupPaths(self, path: str):
+    def getSubgroupPaths(self, path: str="/"):
         return self.vmap.getSubGroupsPath(path)
 
-    def subgroupExists(self, path):
+    def subgroupExists(self, path: str):
         return self.vmap.existsGroup(path)
 
     def getNProcessSteps(self):
-        return len(self.vmap.getSubGroups("/"))
+        return len(self.getProcessStepNames())
 
     def getProcessSteps(self):
-        return [VMAPGroup(self, path) for path in self.getSubgroupPaths("/")]
+        return [VMAPGroup(self, path) for path in self.getProcessStepPaths()]
 
     def getProcessStepNames(self):
-        return self.vmap.getSubGroups("/")
+        def _isProcessStepName(name:str):
+            arr = name.strip("/").split("_")
+            if arr[0].isnumeric() and not arr[1].isnumeric():
+                return True
+            else:
+                return False
+        #return self.vmap.getSubGroupsPath("/")
+        return [i for i in self.getSubgroupNames("/") if _isProcessStepName(i)]
 
     def getProcessStepPaths(self):
-        return self.vmap.getSubGroupsPath("/")
+        return ["/"+i for i in self.getProcessStepNames()]  # self.vmap.getSubGroups("/")
 
-    def getNMeshes(self, path: str):
+    def getNMeshes(self, path: str):        #TODO: if Path is "/", collect all Meshes
         grp = self.getSubgroup(path)
         if not grp.isGeometrySection():
             raise Exception("Path '{}' is no geometry section.".format(path))
         return self.getNSubgroups(path)
 
-    def getMeshes(self, path: str):
+    def getMeshes(self, path: str):                 #TODO: if Path is "/", collect all Meshes
         grp = self.getSubgroup(path)
         if not grp.isGeometrySection():
             raise Exception("Path '{}' is no geometry section.".format(path))
         return self.getSubgroups(path, VMAPMeshGroup)
 
-    def getMeshNames(self, path: str):
+    def getMeshNames(self, path: str):              #TODO: if Path is "/", collect all Meshes
         pass
 
-    def getMeshPaths(self, path: str):
+    def getMeshPaths(self, path: str):              #TODO: if Path is "/", collect all Meshes    
         pass
 
 
@@ -114,7 +121,7 @@ class VMAPGroup:
     def getSubgroupNames(self):
         return self.handler.getSubgroupNames(self.path)
 
-    def subgroupExists(self, path):
+    def subgroupExists(self, path, name):
         return self.handler.subgroupExists(os.path.join(self.path, name))
 
     def parent(self):
