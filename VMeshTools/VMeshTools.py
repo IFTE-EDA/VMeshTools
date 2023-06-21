@@ -8,7 +8,10 @@ class VMAPFileHandler:
 
     def __init__(self, filename: str, mode=VMAP.VMAPFile.OPENREADWRITE):
         self.filename = filename
-        self.vmap = VMAP.VMAPFile(filename, mode)
+        if not os.path.isfile(filename):
+            self.vmap = VMAP.VMAPFile(filename, VMAP.VMAPFile.CREATEORREPLACE)
+        else:
+            self.vmap = VMAP.VMAPFile(filename, mode)
         #self.vmap.createGroup("/test/dir/subdir/thereIsNoVMAPHere")
 
     def pause(self):
@@ -201,7 +204,7 @@ class VMAPMeshGroup(VMAPGroup):
 
         try:
             self.name = self.vmapRoot.getStringAttribute(path, "MYNAME")
-        except RuntimeError:
+        except:
             self.name = self.id
             print("No 'MYNAME' Attribute found in", self.path)
         self.getElements()
@@ -311,13 +314,13 @@ class VMAPMeshGroup(VMAPGroup):
     def getElementTypeFromId(self, id: int):
         if not self.elemTypesRead:
             self.getElementTypes()
-        type = self.elemTypes[id-1]
-        if type.getIdentifier() != id:          #not numbered as ID(i)=i+1... =(
+        elemtype = self.elemTypes[id-1]
+        if elemtype.getIdentifier() != id:          #not numbered as ID(i)=i+1... =(
             print("ID {} not found. Searching...".format(id))
             for eType in self.elemTypes:
                 if eType.getIdentifier() == id:
-                    type = eType
-        if type.getIdentifier() == id:
+                    elemtype = eType
+        if elemtype.getIdentifier() == id:
             return type
         else:
             raise Exception("Element type identifier not found: {}".format(id))
@@ -364,6 +367,8 @@ class VMAPMeshGroup(VMAPGroup):
         return block
 
     def __elemTypeDefined(self):
+        if not self.exists() or not len(self.elemTypes):
+            return False
         type = self.getElementTypeFromId(1)
         conn = type.getConnectivity()
         if type.myShapeType == VMAP.sElementType.TRIANGLE_3 and conn == (0, 1, 2):
