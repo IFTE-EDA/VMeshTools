@@ -321,7 +321,7 @@ class VMAPMeshGroup(VMAPGroup):
                 if eType.getIdentifier() == id:
                     elemtype = eType
         if elemtype.getIdentifier() == id:
-            return type
+            return elemtype
         else:
             raise Exception("Element type identifier not found: {}".format(id))
 
@@ -369,9 +369,9 @@ class VMAPMeshGroup(VMAPGroup):
     def __elemTypeDefined(self):
         if not self.exists() or not len(self.elemTypes):
             return False
-        type = self.getElementTypeFromId(1)
-        conn = type.getConnectivity()
-        if type.myShapeType == VMAP.sElementType.TRIANGLE_3 and conn == (0, 1, 2):
+        elemtype = self.getElementTypeFromId(1)
+        conn = elemtype.getConnectivity()
+        if elemtype.myShapeType == VMAP.sElementType.TRIANGLE_3 and conn == (0, 1, 2):
             return True
         else:
             return False
